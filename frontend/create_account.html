@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - Union Bank</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>UNION BANK</h1>
+        <p>Account Management System</p>
+    </header>
+
+    <main>
+
+        <h2>Create Bank Account</h2>
+
+        <form id="accountForm">
+
+            <label for="username">Username:</label>
+            <br>
+            <input type="text" id="username" readonly>
+            <br><br>
+
+            <label for="phone">Phone Number:</label>
+            <br>
+            <input type="tel" id="phone" required>
+            <br><br>
+
+            <label for="aadhar">Aadhar Number:</label>
+            <br>
+            <input type="text" id="aadhar" required>
+            <br><br>
+
+            <button type="submit">Create Account</button>
+
+        </form>
+
+        <p id="message"></p>
+
+        <p>
+            <a href="home.html">Back to Home</a>
+        </p>
+
+    </main>
+
+    <script>
+        const currentUser = localStorage.getItem("currentUser");
+
+        if (!currentUser) {
+            window.location.href = "login.html";
+        }
+
+        document.getElementById("username").value = currentUser;
+
+        document.getElementById("accountForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const phone = document.getElementById("phone").value;
+            const aadhar = document.getElementById("aadhar").value;
+
+            const accounts = JSON.parse(localStorage.getItem("accounts")) || [];
+
+            const existingAccount = accounts.find(function(account) {
+                return account.username === currentUser;
+            });
+
+            if (existingAccount) {
+                document.getElementById("message").textContent =
+                    "You already have a bank account.";
+                return;
+            }
+
+            let accountNumber;
+
+            do {
+                accountNumber = String(Math.floor(1000000000 + Math.random() * 9000000000));
+            } while (
+                accounts.some(function(account) {
+                    return account.accountNumber === accountNumber;
+                })
+            );
+
+            const newAccount = {
+                username: currentUser,
+                phone: phone,
+                aadhar: aadhar,
+                accountNumber: accountNumber,
+                balance: 0
+            };
+
+            accounts.push(newAccount);
+
+            localStorage.setItem("accounts", JSON.stringify(accounts));
+
+            document.getElementById("message").textContent =
+                "Account created successfully. Account Number: " + accountNumber;
+
+            document.getElementById("accountForm").reset();
+            document.getElementById("username").value = currentUser;
+        });
+    </script>
+
+</body>
+</html>

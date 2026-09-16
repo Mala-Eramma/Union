@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Balance - Union Bank</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>UNION BANK</h1>
+        <p>Account Management System</p>
+    </header>
+
+    <main>
+
+        <h2>Current Balance</h2>
+
+        <form id="balanceForm">
+
+            <label for="accountNumber">Account Number:</label>
+            <br>
+            <input type="text" id="accountNumber" required>
+            <br><br>
+
+            <button type="submit">Check Balance</button>
+
+        </form>
+
+        <div id="result"></div>
+
+        <p>
+            <a href="home.html">Back to Home</a>
+        </p>
+
+    </main>
+
+    <script>
+        const currentUser = localStorage.getItem("currentUser");
+
+        if (!currentUser) {
+            window.location.href = "login.html";
+        }
+
+        document.getElementById("balanceForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const accountNumber =
+                document.getElementById("accountNumber").value;
+
+            const accounts =
+                JSON.parse(localStorage.getItem("accounts")) || [];
+
+            const account = accounts.find(function(account) {
+                return account.accountNumber === accountNumber &&
+                       account.username === currentUser;
+            });
+
+            const result = document.getElementById("result");
+
+            if (!account) {
+                result.textContent = "Account not found.";
+                return;
+            }
+
+            result.innerHTML =
+                "<h3>Account Balance</h3>" +
+                "<p>Account Holder: " + account.username + "</p>" +
+                "<p>Account Number: " + account.accountNumber + "</p>" +
+                "<p>Current Balance: ₹" +
+                account.balance.toFixed(2) + "</p>";
+        });
+    </script>
+
+</body>
+</html>

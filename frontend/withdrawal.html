@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdrawal - Union Bank</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>UNION BANK</h1>
+        <p>Account Management System</p>
+    </header>
+
+    <main>
+
+        <h2>Withdraw Money</h2>
+
+        <form id="withdrawalForm">
+
+            <label for="accountNumber">Account Number:</label>
+            <br>
+            <input type="text" id="accountNumber" required>
+            <br><br>
+
+            <label for="amount">Amount:</label>
+            <br>
+            <input type="number" id="amount" min="1" step="0.01" required>
+            <br><br>
+
+            <button type="submit">Withdraw</button>
+
+        </form>
+
+        <p id="message"></p>
+
+        <p>
+            <a href="home.html">Back to Home</a>
+        </p>
+
+    </main>
+
+    <script>
+        const currentUser = localStorage.getItem("currentUser");
+
+        if (!currentUser) {
+            window.location.href = "login.html";
+        }
+
+        document.getElementById("withdrawalForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const accountNumber = document.getElementById("accountNumber").value;
+            const amount = Number(document.getElementById("amount").value);
+
+            const accounts = JSON.parse(localStorage.getItem("accounts")) || [];
+
+            const account = accounts.find(function(account) {
+                return account.accountNumber === accountNumber &&
+                       account.username === currentUser;
+            });
+
+            if (!account) {
+                document.getElementById("message").textContent =
+                    "Account not found.";
+                return;
+            }
+
+            if (amount <= 0) {
+                document.getElementById("message").textContent =
+                    "Amount must be greater than zero.";
+                return;
+            }
+
+            if (amount > account.balance) {
+                document.getElementById("message").textContent =
+                    "Insufficient balance.";
+                return;
+            }
+
+            account.balance = account.balance - amount;
+
+            localStorage.setItem("accounts", JSON.stringify(accounts));
+
+            document.getElementById("message").textContent =
+                "Withdrawal successful. Current balance: ₹" +
+                account.balance.toFixed(2);
+
+            document.getElementById("withdrawalForm").reset();
+        });
+    </script>
+
+</body>
+</html>
