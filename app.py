@@ -45,9 +45,15 @@ create_tables()
 # ---------------- ACCOUNT NUMBER ----------------
 def generate_account_number():
     conn = get_db_connection()
+
     while True:
         acc_no = str(random.randint(1000000000, 9999999999))
-        account = conn.execute("SELECT * FROM accounts WHERE account_number=?", (acc_no,)).fetchone()
+
+        account = conn.execute(
+            "SELECT * FROM accounts WHERE account_number=?",
+            (acc_no,)
+        ).fetchone()
+
         if not account:
             conn.close()
             return acc_no
@@ -57,7 +63,9 @@ BASE_HTML = """
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>{{ title }}</title>
+
     <style>
         body {
             margin: 0;
@@ -136,11 +144,25 @@ BASE_HTML = """
             opacity: 0.9;
         }
 
-        .btn-green { background: #16a34a; }
-        .btn-red { background: #dc2626; }
-        .btn-orange { background: #f59e0b; }
-        .btn-purple { background: #7c3aed; }
-        .btn-gray { background: gray; }
+        .btn-green {
+            background: #16a34a;
+        }
+
+        .btn-red {
+            background: #dc2626;
+        }
+
+        .btn-orange {
+            background: #f59e0b;
+        }
+
+        .btn-purple {
+            background: #7c3aed;
+        }
+
+        .btn-gray {
+            background: gray;
+        }
 
         .flash {
             width: 420px;
@@ -217,24 +239,31 @@ BASE_HTML = """
         }
     </style>
 </head>
+
 <body>
+
     <div class="navbar">UNION BANK ACCOUNT MANAGEMENT SYSTEM</div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="flash {{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
     {% endwith %}
 
     {{ content|safe }}
+
 </body>
 </html>
 """
 
 def render_page(title, content):
-    return render_template_string(BASE_HTML, title=title, content=content)
+    return render_template_string(
+        BASE_HTML,
+        title=title,
+        content=content
+    )
 
 # ---------------- HOME / INDEX ----------------
 @app.route("/")
@@ -242,16 +271,25 @@ def index():
     content = """
     <div class="container">
         <h2>Welcome to Union Bank</h2>
-        <a href="/register" class="btn btn-green">Register</a>
-        <a href="/login" class="btn">Login</a>
+
+        <a href="/register" class="btn btn-green">
+            Register
+        </a>
+
+        <a href="/login" class="btn">
+            Login
+        </a>
     </div>
     """
+
     return render_page("Union Bank", content)
 
 # ---------------- REGISTER ----------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
+
     if request.method == "POST":
+
         username = request.form["username"].strip()
         email = request.form["email"].strip()
         password = request.form["password"].strip()
@@ -261,23 +299,40 @@ def register():
             return redirect(url_for("register"))
 
         conn = get_db_connection()
+
         try:
+
             conn.execute(
-                "INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+                "INSERT INTO users (username, email, password) VALUES(?, ?, ?)",
                 (username, email, password)
             )
+
             conn.commit()
-            flash("Registration successful! Please login.", "success")
+
+            flash(
+                "Registration successful! Please login.",
+                "success"
+            )
+
             return redirect(url_for("login"))
+
         except sqlite3.IntegrityError:
-            flash("Username already exists", "error")
+
+            flash(
+                "Username already exists",
+                "error"
+            )
+
         finally:
             conn.close()
 
     content = """
     <div class="container">
+
         <h2>User Registration</h2>
+
         <form method="POST">
+
             <label>Username</label>
             <input type="text" name="username">
 
@@ -287,61 +342,102 @@ def register():
             <label>Password</label>
             <input type="password" name="password">
 
-            <button type="submit" class="btn-green">Register</button>
-            <a href="/" class="btn btn-gray">Back</a>
+            <button type="submit" class="btn-green">
+                Register
+            </button>
+
+            <a href="/" class="btn btn-gray">
+                Back
+            </a>
+
         </form>
+
     </div>
     """
+
     return render_page("Register", content)
 
 # ---------------- LOGIN ----------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
+
     if request.method == "POST":
+
         username = request.form["username"].strip()
         password = request.form["password"].strip()
 
         conn = get_db_connection()
+
         user = conn.execute(
             "SELECT * FROM users WHERE username=? AND password=?",
             (username, password)
         ).fetchone()
+
         conn.close()
 
         if user:
+
             session["username"] = username
-            flash("Login successful", "success")
+
+            flash(
+                "Login successful",
+                "success"
+            )
+
             return redirect(url_for("home"))
+
         else:
-            flash("Invalid username or password", "error")
+
+            flash(
+                "Invalid username or password",
+                "error"
+            )
 
     content = """
     <div class="container">
+
         <h2>User Login</h2>
+
         <form method="POST">
+
             <label>Username</label>
             <input type="text" name="username">
 
             <label>Password</label>
             <input type="password" name="password">
 
-            <button type="submit">Login</button>
-            <a href="/" class="btn btn-gray">Back</a>
+            <button type="submit">
+                Login
+            </button>
+
+            <a href="/" class="btn btn-gray">
+                Back
+            </a>
+
         </form>
+
     </div>
     """
+
     return render_page("Login", content)
 
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
+
     session.clear()
-    flash("Logged out successfully", "success")
+
+    flash(
+        "Logged out successfully",
+        "success"
+    )
+
     return redirect(url_for("index"))
 
 # ---------------- HOME PAGE ----------------
 @app.route("/home")
 def home():
+
     if "username" not in session:
         return redirect(url_for("login"))
 
@@ -349,39 +445,77 @@ def home():
 
     content = f"""
     <div class="wide-container">
-        <div class="welcome-text">Welcome, {username}</div>
+
+        <div class="welcome-text">
+            Welcome, {username}
+        </div>
+
         <h2>Union Bank Dashboard</h2>
 
         <div class="menu-grid">
-            <a href="/create_account" class="btn-green">Create Account</a>
-            <a href="/deposit" style="background:#2563eb;">Deposit</a>
-            <a href="/withdrawal" class="btn-red">Withdrawal</a>
-            <a href="/balance" class="btn-orange">Current Balance</a>
-            <a href="/details" class="btn-purple" style="grid-column: span 2;">Account Holder Details</a>
+
+            <a href="/create_account" class="btn-green">
+                Create Account
+            </a>
+
+            <a href="/deposit" style="background:#2563eb;">
+                Deposit
+            </a>
+
+            <a href="/withdrawal" class="btn-red">
+                Withdrawal
+            </a>
+
+            <a href="/balance" class="btn-orange">
+                Current Balance
+            </a>
+
+            <a href="/details"
+               class="btn-purple"
+               style="grid-column:span 2;">
+                Account Holder Details
+            </a>
+
         </div>
 
-        <a href="/logout" class="btn btn-gray" style="margin-top:25px;">Logout</a>
+        <a href="/logout"
+           class="btn btn-gray"
+           style="margin-top:25px;">
+            Logout
+        </a>
+
     </div>
     """
+
     return render_page("Home", content)
 
 # ---------------- CREATE ACCOUNT ----------------
 @app.route("/create_account", methods=["GET", "POST"])
 def create_account():
+
     if "username" not in session:
         return redirect(url_for("login"))
 
     username_value = session["username"]
+
     result_html = ""
 
     if request.method == "POST":
+
         username = request.form["username"].strip()
         phone = request.form["phone"].strip()
         aadhar = request.form["aadhar"].strip()
 
         if not username or not phone or not aadhar:
-            result_html = '<div class="result-error">All fields are required</div>'
+
+            result_html = """
+            <div class="result-error">
+                All fields are required
+            </div>
+            """
+
         else:
+
             conn = get_db_connection()
 
             existing = conn.execute(
@@ -390,251 +524,481 @@ def create_account():
             ).fetchone()
 
             if existing:
-                result_html = '<div class="result-error">This user already has an account</div>'
+
+                result_html = """
+                <div class="result-error">
+                    This user already has an account
+                </div>
+                """
+
             else:
+
                 acc_no = generate_account_number()
+
                 conn.execute("""
-                    INSERT INTO accounts (username, phone, aadhar, account_number, balance)
+                    INSERT INTO accounts
+                    (username, phone, aadhar, account_number, balance)
                     VALUES (?, ?, ?, ?, ?)
-                """, (username, phone, aadhar, acc_no, 0))
+                """, (
+                    username,
+                    phone,
+                    aadhar,
+                    acc_no,
+                    0
+                ))
+
                 conn.commit()
-                result_html = f'<div class="result-success">Account created successfully!<br>Generated Account Number: {acc_no}</div>'
+
+                result_html = f"""
+                <div class="result-success">
+                    Account created successfully!
+                    <br>
+                    Generated Account Number: {acc_no}
+                </div>
+                """
 
             conn.close()
 
     content = f"""
     <div class="container">
+
         <h2>Create New Bank Account</h2>
+
         <form method="POST">
+
             <label>User Name</label>
-            <input type="text" name="username" value="{username_value}">
+            <input
+                type="text"
+                name="username"
+                value="{username_value}"
+            >
 
             <label>Phone Number</label>
-            <input type="text" name="phone">
+            <input
+                type="text"
+                name="phone"
+            >
 
             <label>Aadhar Number</label>
-            <input type="text" name="aadhar">
+            <input
+                type="text"
+                name="aadhar"
+            >
 
-            <button type="submit" class="btn-green">Create Account</button>
-            <a href="/home" class="btn btn-gray">Back</a>
+            <button type="submit" class="btn-green">
+                Create Account
+            </button>
+
+            <a href="/home" class="btn btn-gray">
+                Back
+            </a>
+
         </form>
+
         {result_html}
+
     </div>
     """
+
     return render_page("Create Account", content)
 
 # ---------------- DEPOSIT ----------------
 @app.route("/deposit", methods=["GET", "POST"])
 def deposit():
+
     if "username" not in session:
         return redirect(url_for("login"))
 
     result_html = ""
 
     if request.method == "POST":
+
         acc_no = request.form["account_number"].strip()
         amount = request.form["amount"].strip()
 
         if not acc_no or not amount:
-            result_html = '<div class="result-error">All fields are required</div>'
+
+            result_html = """
+            <div class="result-error">
+                All fields are required
+            </div>
+            """
+
         else:
+
             try:
+
                 amount = float(amount)
+
                 if amount <= 0:
-                    result_html = '<div class="result-error">Amount must be greater than 0</div>'
+
+                    result_html = """
+                    <div class="result-error">
+                        Amount must be greater than 0
+                    </div>
+                    """
+
                 else:
+
                     conn = get_db_connection()
+
                     account = conn.execute(
                         "SELECT * FROM accounts WHERE account_number=?",
                         (acc_no,)
                     ).fetchone()
 
                     if not account:
-                        result_html = '<div class="result-error">Account not found</div>'
+
+                        result_html = """
+                        <div class="result-error">
+                            Account not found
+                        </div>
+                        """
+
                     else:
+
                         new_balance = account["balance"] + amount
+
                         conn.execute(
                             "UPDATE accounts SET balance=? WHERE account_number=?",
                             (new_balance, acc_no)
                         )
+
                         conn.commit()
-                        result_html = f'<div class="result-success">₹{amount} deposited successfully.<br>New Balance: ₹{new_balance}</div>'
+
+                        result_html = f"""
+                        <div class="result-success">
+                            ₹{amount} deposited successfully.
+                            <br>
+                            New Balance: ₹{new_balance}
+                        </div>
+                        """
+
                     conn.close()
+
             except ValueError:
-                result_html = '<div class="result-error">Enter valid amount</div>'
+
+                result_html = """
+                <div class="result-error">
+                    Enter valid amount
+                </div>
+                """
 
     content = f"""
     <div class="container">
+
         <h2>Deposit Money</h2>
+
         <form method="POST">
+
             <label>Account Number</label>
-            <input type="text" name="account_number">
+            <input
+                type="text"
+                name="account_number"
+            >
 
             <label>Deposit Amount</label>
-            <input type="text" name="amount">
+            <input
+                type="text"
+                name="amount"
+            >
 
-            <button type="submit">Deposit</button>
-            <a href="/home" class="btn btn-gray">Back</a>
+            <button type="submit">
+                Deposit
+            </button>
+
+            <a href="/home" class="btn btn-gray">
+                Back
+            </a>
+
         </form>
+
         {result_html}
+
     </div>
     """
+
     return render_page("Deposit", content)
 
 # ---------------- WITHDRAWAL ----------------
 @app.route("/withdrawal", methods=["GET", "POST"])
 def withdrawal():
+
     if "username" not in session:
         return redirect(url_for("login"))
 
     result_html = ""
 
     if request.method == "POST":
+
         acc_no = request.form["account_number"].strip()
         amount = request.form["amount"].strip()
 
         if not acc_no or not amount:
-            result_html = '<div class="result-error">All fields are required</div>'
+
+            result_html = """
+            <div class="result-error">
+                All fields are required
+            </div>
+            """
+
         else:
+
             try:
+
                 amount = float(amount)
+
                 if amount <= 0:
-                    result_html = '<div class="result-error">Amount must be greater than 0</div>'
+
+                    result_html = """
+                    <div class="result-error">
+                        Amount must be greater than 0
+                    </div>
+                    """
+
                 else:
+
                     conn = get_db_connection()
+
                     account = conn.execute(
                         "SELECT * FROM accounts WHERE account_number=?",
                         (acc_no,)
                     ).fetchone()
 
                     if not account:
-                        result_html = '<div class="result-error">Account not found</div>'
+
+                        result_html = """
+                        <div class="result-error">
+                            Account not found
+                        </div>
+                        """
+
                     elif amount > account["balance"]:
-                        result_html = '<div class="result-error">Insufficient balance</div>'
+
+                        result_html = """
+                        <div class="result-error">
+                            Insufficient balance
+                        </div>
+                        """
+
                     else:
+
                         new_balance = account["balance"] - amount
+
                         conn.execute(
                             "UPDATE accounts SET balance=? WHERE account_number=?",
                             (new_balance, acc_no)
                         )
+
                         conn.commit()
-                        result_html = f'<div class="result-success">₹{amount} withdrawn successfully.<br>Remaining Balance: ₹{new_balance}</div>'
+
+                        result_html = f"""
+                        <div class="result-success">
+                            ₹{amount} withdrawn successfully.
+                            <br>
+                            Remaining Balance: ₹{new_balance}
+                        </div>
+                        """
+
                     conn.close()
+
             except ValueError:
-                result_html = '<div class="result-error">Enter valid amount</div>'
+
+                result_html = """
+                <div class="result-error">
+                    Enter valid amount
+                </div>
+                """
 
     content = f"""
     <div class="container">
+
         <h2>Withdraw Money</h2>
+
         <form method="POST">
+
             <label>Account Number</label>
-            <input type="text" name="account_number">
+            <input
+                type="text"
+                name="account_number"
+            >
 
             <label>Withdrawal Amount</label>
-            <input type="text" name="amount">
+            <input
+                type="text"
+                name="amount"
+            >
 
-            <button type="submit" class="btn-red">Withdraw</button>
-            <a href="/home" class="btn btn-gray">Back</a>
+            <button type="submit" class="btn-red">
+                Withdraw
+            </button>
+
+            <a href="/home" class="btn btn-gray">
+                Back
+            </a>
+
         </form>
+
         {result_html}
+
     </div>
     """
+
     return render_page("Withdrawal", content)
 
 # ---------------- CURRENT BALANCE ----------------
 @app.route("/balance", methods=["GET", "POST"])
 def balance():
+
     if "username" not in session:
         return redirect(url_for("login"))
 
     result_html = ""
 
     if request.method == "POST":
+
         acc_no = request.form["account_number"].strip()
 
         if not acc_no:
-            result_html = '<div class="result-error">Please enter account number</div>'
+
+            result_html = """
+            <div class="result-error">
+                Please enter account number
+            </div>
+            """
+
         else:
+
             conn = get_db_connection()
+
             account = conn.execute(
-                "SELECT username, balance FROM accounts WHERE account_number=?",
+                """
+                SELECT username, balance
+                FROM accounts
+                WHERE account_number=?
+                """,
                 (acc_no,)
             ).fetchone()
+
             conn.close()
 
             if account:
-                result_html = f'''
+
+                result_html = f"""
                 <div class="result-success">
-                    Account Holder: {account["username"]}<br>
+                    Account Holder: {account["username"]}
+                    <br>
                     Current Balance: ₹{account["balance"]}
                 </div>
-                '''
+                """
+
             else:
-                result_html = '<div class="result-error">Account not found</div>'
+
+                result_html = """
+                <div class="result-error">
+                    Account not found
+                </div>
+                """
 
     content = f"""
     <div class="container">
-        <h2>Current Balance</h2>
-        <form method="POST">
-            <label>Account Number</label>
-            <input type="text" name="account_number">
 
-            <button type="submit" class="btn-orange">Check Balance</button>
-            <a href="/home" class="btn btn-gray">Back</a>
+        <h2>Current Balance</h2>
+
+        <form method="POST">
+
+            <label>Account Number</label>
+            <input
+                type="text"
+                name="account_number"
+            >
+
+            <button type="submit" class="btn-orange">
+                Check Balance
+            </button>
+
+            <a href="/home" class="btn btn-gray">
+                Back
+            </a>
+
         </form>
+
         {result_html}
+
     </div>
     """
+
     return render_page("Current Balance", content)
 
 # ---------------- ACCOUNT HOLDER DETAILS ----------------
-@app.route("/details", methods=["GET", "POST"])
+@app.route("/details")
 def details():
+
     if "username" not in session:
         return redirect(url_for("login"))
 
-    result_html = ""
+    username = session["username"]
 
-    if request.method == "POST":
-        acc_no = request.form["account_number"].strip()
+    conn = get_db_connection()
 
-        if not acc_no:
-            result_html = '<div class="result-error">Please enter account number</div>'
-        else:
-            conn = get_db_connection()
-            account = conn.execute("""
-                SELECT username, phone, aadhar, account_number, balance
-                FROM accounts
-                WHERE account_number=?
-            """, (acc_no,)).fetchone()
-            conn.close()
+    account = conn.execute("""
+        SELECT username, phone, aadhar, account_number, balance
+        FROM accounts
+        WHERE username=?
+    """, (username,)).fetchone()
 
-            if account:
-                result_html = f"""
-                <div class="details-box">
-                    <strong>Account Holder Name:</strong> {account["username"]}<br>
-                    <strong>Phone Number:</strong> {account["phone"]}<br>
-                    <strong>Aadhar Number:</strong> {account["aadhar"]}<br>
-                    <strong>Account Number:</strong> {account["account_number"]}<br>
-                    <strong>Current Balance:</strong> ₹{account["balance"]}
-                </div>
-                """
-            else:
-                result_html = '<div class="result-error">Account not found</div>'
+    conn.close()
+
+    if account:
+
+        result_html = f"""
+        <div class="details-box">
+
+            <strong>Account Holder Name:</strong>
+            {account["username"]}
+            <br>
+
+            <strong>Phone Number:</strong>
+            {account["phone"]}
+            <br>
+
+            <strong>Aadhar Number:</strong>
+            {account["aadhar"]}
+            <br>
+
+            <strong>Account Number:</strong>
+            {account["account_number"]}
+            <br>
+
+            <strong>Current Balance:</strong>
+            ₹{account["balance"]}
+
+        </div>
+        """
+
+    else:
+
+        result_html = """
+        <div class="result-error">
+            No bank account found.
+            Please create an account first.
+        </div>
+        """
 
     content = f"""
     <div class="container">
-        <h2>Account Holder Details</h2>
-        <form method="POST">
-            <label>Account Number</label>
-            <input type="text" name="account_number">
 
-            <button type="submit" class="btn-purple">Show Details</button>
-            <a href="/home" class="btn btn-gray">Back</a>
-        </form>
+        <h2>Account Holder Details</h2>
+
         {result_html}
+
+        <a href="/home" class="btn btn-gray">
+            Back
+        </a>
+
     </div>
     """
+
     return render_page("Account Holder Details", content)
 
 # ---------------- RUN ----------------
