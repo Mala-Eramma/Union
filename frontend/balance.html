@@ -70,7 +70,7 @@
                 "<p>Account Holder: " + account.username + "</p>" +
                 "<p>Account Number: " + account.accountNumber + "</p>" +
                 "<p>Current Balance: ₹" +
-                account.balance.toFixed(2) + "</p>";
+                Number(account.balance).toFixed(2) + "</p>";
         });
     </script>
 

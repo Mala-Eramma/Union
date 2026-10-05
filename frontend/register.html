@@ -54,14 +54,14 @@
         document.getElementById("registerForm").addEventListener("submit", function(event) {
             event.preventDefault();
 
-            const username = document.getElementById("username").value;
-            const email = document.getElementById("email").value;
+            const username = document.getElementById("username").value.trim();
+            const email = document.getElementById("email").value.trim();
             const password = document.getElementById("password").value;
 
-            const users = JSON.parse(localStorage.getItem("users")) || [];
+            let users = JSON.parse(localStorage.getItem("users")) || [];
 
             const existingUser = users.find(function(user) {
-                return user.username === username;
+                return user.username.toLowerCase() === username.toLowerCase();
             });
 
             if (existingUser) {
@@ -79,7 +79,7 @@
             localStorage.setItem("users", JSON.stringify(users));
 
             document.getElementById("message").textContent =
-                "Registration successful!";
+                "Registration successful! You can now login.";
 
             document.getElementById("registerForm").reset();
         });

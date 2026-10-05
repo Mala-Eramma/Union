@@ -52,10 +52,14 @@
         document.getElementById("depositForm").addEventListener("submit", function(event) {
             event.preventDefault();
 
-            const accountNumber = document.getElementById("accountNumber").value;
-            const amount = Number(document.getElementById("amount").value);
+            const accountNumber =
+                document.getElementById("accountNumber").value;
 
-            const accounts = JSON.parse(localStorage.getItem("accounts")) || [];
+            const amount =
+                Number(document.getElementById("amount").value);
+
+            const accounts =
+                JSON.parse(localStorage.getItem("accounts")) || [];
 
             const account = accounts.find(function(account) {
                 return account.accountNumber === accountNumber &&
